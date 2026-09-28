@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Worthy Pick</title>
+  <title>Worthy Pick | Smart Finds, Better Choices</title>
 
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,127 +18,900 @@
     }
 
     body {
-      background: #f7f5fa;
+      background: #f6f4f9;
       color: #17121f;
     }
 
+    /* HEADER */
     header {
       background: #100b16;
-      padding: 20px;
-      text-align: center;
       color: white;
+      padding: 16px 5%;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
-    header h1 {
+    .nav {
+      max-width: 1200px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      gap: 25px;
+    }
+
+    .brand {
+      min-width: 190px;
+    }
+
+    .brand h1 {
       color: #c77dff;
-      font-size: 30px;
+      font-size: 27px;
+      letter-spacing: 1px;
     }
 
-    header p {
-      color: #ddd;
-      margin-top: 6px;
-      font-size: 14px;
+    .brand p {
+      color: #d9d1df;
+      font-size: 11px;
+      margin-top: 3px;
     }
 
-    .hero {
-      text-align: center;
-      padding: 55px 20px;
-      background: linear-gradient(135deg, #17101f, #3b1857);
+    .search-box {
+      flex: 1;
+      display: flex;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .search-box input {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 13px 16px;
+      font-size: 15px;
+    }
+
+    .search-box button {
+      border: none;
+      background: #8b3dce;
       color: white;
+      padding: 0 20px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #140c1c, #4b1870);
+      color: white;
+      text-align: center;
+      padding: 65px 20px;
     }
 
     .hero h2 {
-      font-size: 34px;
+      font-size: 42px;
       margin-bottom: 12px;
     }
 
     .hero p {
-      color: #e8dff0;
+      color: #e9dff0;
+      font-size: 17px;
     }
 
-    .status {
-      max-width: 700px;
-      margin: 30px auto;
-      padding: 18px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-      text-align: center;
-    }
-
-    #connection-status {
+    .hero-button {
+      display: inline-block;
+      margin-top: 25px;
+      background: #c77dff;
+      color: #160d1d;
+      padding: 12px 25px;
+      border-radius: 8px;
+      text-decoration: none;
       font-weight: bold;
-      margin-top: 8px;
     }
 
-    .success {
-      color: green;
+    /* MAIN */
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 35px 20px;
     }
 
-    .error {
-      color: red;
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .section-title h2 {
+      font-size: 25px;
+    }
+
+    /* CATEGORIES */
+    .categories {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 40px;
+    }
+
+    .category {
+      background: white;
+      border: 1px solid #e4ddeb;
+      padding: 11px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: 0.2s;
+    }
+
+    .category:hover,
+    .category.active {
+      background: #8b3dce;
+      color: white;
+    }
+
+    /* PRODUCT TOOLBAR */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 15px;
+    }
+
+    .toolbar select {
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+      background: white;
+    }
+
+    /* PRODUCTS */
+    .products {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 5px 18px rgba(0,0,0,0.07);
+      transition: 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    .product-image {
+      height: 220px;
+      background: #f0edf3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .no-image {
+      color: #777;
+    }
+
+    .product-info {
+      padding: 17px;
+    }
+
+    .source {
+      display: inline-block;
+      background: #eee5f6;
+      color: #7134a2;
+      padding: 5px 9px;
+      border-radius: 5px;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .product-name {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .description {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .price {
+      font-size: 21px;
+      font-weight: bold;
+      color: #17121f;
+    }
+
+    .availability {
+      margin-top: 7px;
+      font-size: 13px;
+      color: #24823b;
+    }
+
+    .view-button {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background: #17101f;
+      color: white;
+      text-decoration: none;
+      padding: 11px;
+      border-radius: 7px;
+      margin-top: 14px;
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      background: white;
+      padding: 45px 20px;
+      text-align: center;
+      border-radius: 12px;
+      color: #777;
+    }
+
+    /* SOCIAL */
+    .social {
+      margin-top: 55px;
+      background: linear-gradient(135deg, #17101f, #35164d);
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+      border-radius: 15px;
+    }
+
+    .social h2 {
+      margin-bottom: 10px;
+    }
+
+    .social p {
+      color: #ddd;
+      margin-bottom: 20px;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .social-links a {
+      color: white;
+      text-decoration: none;
+      background: #8b3dce;
+      padding: 11px 18px;
+      border-radius: 8px;
+    }
+
+    /* FOOTER */
+    footer {
+      background: #100b16;
+      color: #aaa;
+      text-align: center;
+      padding: 30px 20px;
+      margin-top: 50px;
+      line-height: 1.7;
+      font-size: 13px;
+    }
+
+    footer strong {
+      color: #c77dff;
+    }
+
+    /* MOBILE */
+    @media (max-width: 800px) {
+
+      .nav {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .brand {
+        text-align: center;
+      }
+
+      .search-box {
+        width: 100%;
+      }
+
+      .hero h2 {
+        font-size: 31px;
+      }
+
+      .products {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 520px) {
+
+      .products {
+        grid-template-columns: 1fr;
+      }
+
+      .product-image {
+        height: 240px;
+      }
+
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .toolbar select {
+        width: 100%;
+      }
     }
   </style>
 </head>
 
 <body>
 
+  <!-- HEADER -->
   <header>
-    <h1>WORTHY PICK</h1>
-    <p>Smart Finds • Better Choices • Everyday Value</p>
+    <div class="nav">
+
+      <div class="brand">
+        <h1>WORTHY PICK</h1>
+        <p>Smart Finds • Better Choices • Everyday Value</p>
+      </div>
+
+      <div class="search-box">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search products..."
+          oninput="searchProducts()"
+        >
+        <button onclick="searchProducts()">🔍</button>
+      </div>
+
+    </div>
   </header>
 
+
+  <!-- HERO -->
   <section class="hero">
-    <h2>Find What’s Worth Picking.</h2>
-    <p>Discover useful products from trusted shopping platforms.</p>
+
+    <h2>Find What's Worth Picking.</h2>
+
+    <p>
+      Discover useful products from trusted shopping platforms.
+    </p>
+
+    <a href="#productsSection" class="hero-button">
+      Explore Products
+    </a>
+
   </section>
 
-  <div class="status">
-    <h3>Supabase Connection</h3>
-    <p id="connection-status">Checking connection...</p>
-  </div>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- CATEGORIES -->
+    <section>
+
+      <div class="section-title">
+        <h2>Browse Categories</h2>
+      </div>
+
+      <div class="categories" id="categories">
+        <button class="category active" onclick="filterCategory('all', this)">
+          All
+        </button>
+      </div>
+
+    </section>
+
+
+    <!-- PRODUCTS -->
+    <section id="productsSection">
+
+      <div class="toolbar">
+
+        <div class="section-title" style="margin:0;">
+          <h2>Our Picks</h2>
+        </div>
+
+        <select id="sortSelect" onchange="sortProducts()">
+          <option value="default">Sort Products</option>
+          <option value="low">Price: Low to High</option>
+          <option value="high">Price: High to Low</option>
+          <option value="name">Name: A-Z</option>
+        </select>
+
+      </div>
+
+
+      <div class="products" id="products">
+
+        <div class="empty">
+          <h3>Loading products...</h3>
+          <p>Please wait.</p>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SOCIAL -->
+    <section class="social">
+
+      <h2>You can also visit our social media</h2>
+
+      <p>
+        Follow Worthy Pick for useful products, smart finds and better choices.
+      </p>
+
+      <div class="social-links">
+
+        <a
+          href="https://www.instagram.com/worthy._picks?stkn=MW41YzFwYmpubWNjcg=="
+          target="_blank"
+        >
+          📸 Instagram
+        </a>
+
+        <a
+          href="https://www.facebook.com/share/1azCpD3SUf/"
+          target="_blank"
+        >
+          📘 Facebook
+        </a>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- FOOTER -->
+  <footer>
+
+    <p>
+      <strong>Worthy Pick</strong> — Smart Finds • Better Choices • Everyday Value
+    </p>
+
+    <p>
+      We share original products from trusted shopping platforms
+      and do not intentionally list products from third-party scam sellers.
+    </p>
+
+    <p>
+      © 2026 Worthy Pick. All rights reserved.
+    </p>
+
+  </footer>
+
 
   <script>
+
     // ==========================================
     // SUPABASE CONNECTION
     // ==========================================
 
-    const SUPABASE_URL = "https://uzgzlbjjfukvzttupgre.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_l-UkdgwLnHVwinuq-bPmoQ_07TGDCwN";
+    const SUPABASE_URL =
+      "https://uzgzlbjjfukvzttupgre.supabase.co";
+
+    /*
+      IMPORTANT:
+      Yahan apna EXISTING SUPABASE PUBLISHABLE KEY paste karo.
+      Apne purane code wala same key use karna hai.
+    */
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_l-UkdgwLnHVwinuq-bPmoQ_07TGDCwN";
+
 
     const supabaseClient = supabase.createClient(
       SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY
     );
 
-    // Test connection
-    async function testSupabase() {
-      const status = document.getElementById("connection-status");
+
+    // ==========================================
+    // WEBSITE DATA
+    // ==========================================
+
+    let allProducts = [];
+    let selectedCategory = "all";
+
+
+    // ==========================================
+    // LOAD CATEGORIES
+    // ==========================================
+
+    async function loadCategories() {
+
+      const categoryBox = document.getElementById("categories");
 
       try {
+
         const { data, error } = await supabaseClient
           .from("categories")
-          .select("*")
-          .limit(1);
+          .select("*");
 
-        if (error) {
-          throw error;
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          return;
         }
 
-        status.textContent = "Connected Successfully ✓";
-        status.className = "success";
+        data.forEach(category => {
 
-        console.log("Supabase connected:", data);
+          const name =
+            category.name ||
+            category.title ||
+            category.category_name ||
+            "Category";
+
+          const button = document.createElement("button");
+
+          button.className = "category";
+
+          button.textContent = name;
+
+          button.onclick = function() {
+            filterCategory(name, this);
+          };
+
+          categoryBox.appendChild(button);
+
+        });
 
       } catch (error) {
-        status.textContent = "Connection Error: " + error.message;
-        status.className = "error";
 
-        console.error("Supabase error:", error);
+        console.error("Category loading error:", error);
+
       }
+
     }
 
-    testSupabase();
+
+    // ==========================================
+    // LOAD PRODUCTS
+    // ==========================================
+
+    async function loadProducts() {
+
+      const productBox = document.getElementById("products");
+
+      try {
+
+        const { data, error } = await supabaseClient
+          .from("products")
+          .select("*");
+
+        if (error) throw error;
+
+        allProducts = data || [];
+
+        displayProducts(allProducts);
+
+      } catch (error) {
+
+        console.error("Product loading error:", error);
+
+        productBox.innerHTML = `
+          <div class="empty">
+            <h3>Products will appear here</h3>
+            <p>Our product collection is being prepared.</p>
+          </div>
+        `;
+
+      }
+
+    }
+
+
+    // ==========================================
+    // DISPLAY PRODUCTS
+    // ==========================================
+
+    function displayProducts(products) {
+
+      const productBox = document.getElementById("products");
+
+      if (!products || products.length === 0) {
+
+        productBox.innerHTML = `
+          <div class="empty">
+            <h3>No products available yet.</h3>
+            <p>New worthy picks will appear here soon.</p>
+          </div>
+        `;
+
+        return;
+      }
+
+
+      productBox.innerHTML = "";
+
+
+      products.forEach(product => {
+
+        const name =
+          product.name ||
+          product.title ||
+          product.product_name ||
+          "Product";
+
+
+        const description =
+          product.description ||
+          "A useful product selected by Worthy Pick.";
+
+
+        const price =
+          product.price ||
+          product.selling_price ||
+          "";
+
+
+        const source =
+          product.source ||
+          product.platform ||
+          product.store ||
+          "Shopping Platform";
+
+
+        const image =
+          product.image_url ||
+          product.image ||
+          product.product_image ||
+          "";
+
+
+        const link =
+          product.affiliate_link ||
+          product.product_link ||
+          product.link ||
+          "#";
+
+
+        const available =
+          product.available !== false &&
+          product.availability !== "not available";
+
+
+        const card = document.createElement("div");
+
+        card.className = "product-card";
+
+
+        card.innerHTML = `
+
+          <div class="product-image">
+
+            ${
+              image
+              ? `<img src="${image}" alt="${name}">`
+              : `<span class="no-image">Product Image</span>`
+            }
+
+          </div>
+
+          <div class="product-info">
+
+            <span class="source">
+              ${source}
+            </span>
+
+            <h3 class="product-name">
+              ${name}
+            </h3>
+
+            <p class="description">
+              ${description}
+            </p>
+
+            ${
+              price
+              ? `<div class="price">₹${price}</div>`
+              : ""
+            }
+
+            <div class="availability">
+              ${available ? "✓ Available" : "✕ Not Available"}
+            </div>
+
+            ${
+              link !== "#"
+              ? `
+                <a
+                  class="view-button"
+                  href="${link}"
+                  target="_blank"
+                >
+                  View Product
+                </a>
+              `
+              : ""
+            }
+
+          </div>
+
+        `;
+
+
+        productBox.appendChild(card);
+
+      });
+
+    }
+
+
+    // ==========================================
+    // SEARCH
+    // ==========================================
+
+    function searchProducts() {
+
+      const search =
+        document
+          .getElementById("searchInput")
+          .value
+          .toLowerCase()
+          .trim();
+
+
+      const filtered = allProducts.filter(product => {
+
+        const name =
+          String(
+            product.name ||
+            product.title ||
+            product.product_name ||
+            ""
+          ).toLowerCase();
+
+
+        const description =
+          String(
+            product.description ||
+            ""
+          ).toLowerCase();
+
+
+        return (
+          name.includes(search) ||
+          description.includes(search)
+        );
+
+      });
+
+
+      displayProducts(filtered);
+
+    }
+
+
+    // ==========================================
+    // CATEGORY FILTER
+    // ==========================================
+
+    function filterCategory(category, button) {
+
+      selectedCategory = category;
+
+      document
+        .querySelectorAll(".category")
+        .forEach(btn => btn.classList.remove("active"));
+
+
+      button.classList.add("active");
+
+
+      if (category === "all") {
+
+        displayProducts(allProducts);
+        return;
+
+      }
+
+
+      const filtered = allProducts.filter(product => {
+
+        const productCategory =
+          product.category ||
+          product.category_name ||
+          product.category_id ||
+          "";
+
+
+        return String(productCategory).toLowerCase() ===
+               String(category).toLowerCase();
+
+      });
+
+
+      displayProducts(filtered);
+
+    }
+
+
+    // ==========================================
+    // SORT
+    // ==========================================
+
+    function sortProducts() {
+
+      const option =
+        document.getElementById("sortSelect").value;
+
+
+      let products = [...allProducts];
+
+
+      if (option === "low") {
+
+        products.sort((a, b) =>
+          Number(a.price || 0) -
+          Number(b.price || 0)
+        );
+
+      }
+
+
+      if (option === "high") {
+
+        products.sort((a, b) =>
+          Number(b.price || 0) -
+          Number(a.price || 0)
+        );
+
+      }
+
+
+      if (option === "name") {
+
+        products.sort((a, b) => {
+
+          const nameA =
+            a.name || a.title || "";
+
+          const nameB =
+            b.name || b.title || "";
+
+          return nameA.localeCompare(nameB);
+
+        });
+
+      }
+
+
+      displayProducts(products);
+
+    }
+
+
+    // ==========================================
+    // START WEBSITE
+    // ==========================================
+
+    loadCategories();
+    loadProducts();
+
   </script>
 
 </body>
