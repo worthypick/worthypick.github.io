@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Worthy Pick</title>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f7f5fa;
+      color: #17121f;
+    }
+
+    header {
+      background: #100b16;
+      padding: 20px;
+      text-align: center;
+      color: white;
+    }
+
+    header h1 {
+      color: #c77dff;
+      font-size: 30px;
+    }
+
+    header p {
+      color: #ddd;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 55px 20px;
+      background: linear-gradient(135deg, #17101f, #3b1857);
+      color: white;
+    }
+
+    .hero h2 {
+      font-size: 34px;
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      color: #e8dff0;
+    }
+
+    .status {
+      max-width: 700px;
+      margin: 30px auto;
+      padding: 18px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    #connection-status {
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>WORTHY PICK</h1>
+    <p>Smart Finds • Better Choices • Everyday Value</p>
+  </header>
+
+  <section class="hero">
+    <h2>Find What’s Worth Picking.</h2>
+    <p>Discover useful products from trusted shopping platforms.</p>
+  </section>
+
+  <div class="status">
+    <h3>Supabase Connection</h3>
+    <p id="connection-status">Checking connection...</p>
+  </div>
+
+  <script>
+    // ==========================================
+    // SUPABASE CONNECTION
+    // ==========================================
+
+    const SUPABASE_URL = "https://uzgzlbjjfukvzttupgre.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_l-UkdgwLnHVwinuq-bPmoQ_07TGDCwN";
+
+    const supabaseClient = supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    // Test connection
+    async function testSupabase() {
+      const status = document.getElementById("connection-status");
+
+      try {
+        const { data, error } = await supabaseClient
+          .from("categories")
+          .select("*")
+          .limit(1);
+
+        if (error) {
+          throw error;
+        }
+
+        status.textContent = "Connected Successfully ✓";
+        status.className = "success";
+
+        console.log("Supabase connected:", data);
+
+      } catch (error) {
+        status.textContent = "Connection Error: " + error.message;
+        status.className = "error";
+
+        console.error("Supabase error:", error);
+      }
+    }
+
+    testSupabase();
+  </script>
+
+</body>
+</html>
