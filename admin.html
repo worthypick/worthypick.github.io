@@ -258,11 +258,19 @@ button.secondary{background:#555}
 
 <h2>Manage Categories</h2>
 
-<input id="categoryName" placeholder="New category name">
-
+<label>Category Type</label>
+<select id="categoryType" onchange="toggleParentCategory()">
+<option value="main">Main Category</option>
+<option value="sub">Subcategory</option>
+</select>
+<label id="parentCategoryLabel" class="hidden">Parent Main Category</label>
+<select id="parentCategory" class="hidden"><option value="">Select parent category</option></select>
+<label>Category Name</label>
+<input id="categoryName" placeholder="Example: Fashion / T-Shirts">
+<label>Description</label>
 <input id="categoryDescription" placeholder="Category description">
-
 <button onclick="addCategory()">Add Category</button>
+<p class="status">Tip: Create a main category first, then add its subcategories.</p>
 
 <div id="categoryList"></div>
 
@@ -407,141 +415,64 @@ document.getElementById(id).classList.remove("hidden");
 
 
 async function loadCategories(){
-
-const {data,error}=await client
-
-.from("categories")
-
-.select("*")
-
-.order("id");
-
-
-
-if(error){
-
-showMessage(error.message);
-
-return;
-
-}
-
-
-
+const {data,error}=await client.from("categories").select("*").order("id");
+if(error){showMessage(error.message);return;}
 categories=data||[];
-
-
-
-const select=document.getElementById("category");
-
-select.innerHTML='<option value="">Select category</option>';
-
-
-
-categories.forEach(c=>{
-
-select.innerHTML+=`<option value="${c.id}">${escapeHTML(c.name)}</option>`;
-
+const mainCategories=categories.filter(c=>!c.parent_id);
+const productSelect=document.getElementById("category");
+productSelect.innerHTML='<option value="">Select category</option>';
+mainCategories.forEach(main=>{
+ const children=categories.filter(c=>String(c.parent_id)===String(main.id));
+ if(children.length){
+  const group=document.createElement("optgroup"); group.label=main.name;
+  children.forEach(child=>{const option=document.createElement("option");option.value=child.id;option.textContent=child.name;group.appendChild(option);});
+  productSelect.appendChild(group);
+ } else { const option=document.createElement("option");option.value=main.id;option.textContent=main.name;productSelect.appendChild(option); }
 });
-
-
-
-const list=document.getElementById("categoryList");
-
-list.innerHTML="";
-
-
-
-categories.forEach(c=>{
-
-list.innerHTML+=`
-
-<div class="product">
-
-<strong>${escapeHTML(c.name)}</strong>
-
-<button class="danger" onclick="deleteCategory(${c.id})">Delete</button>
-
-</div>`;
-
+const parentSelect=document.getElementById("parentCategory");
+parentSelect.innerHTML='<option value="">Select parent category</option>';
+mainCategories.forEach(c=>{const o=document.createElement("option");o.value=c.id;o.textContent=c.name;parentSelect.appendChild(o);});
+toggleParentCategory();
+const list=document.getElementById("categoryList"); list.innerHTML="";
+mainCategories.forEach(main=>{
+ const children=categories.filter(c=>String(c.parent_id)===String(main.id));
+ list.innerHTML+=`<div class="product"><strong>${escapeHTML(main.name)}</strong> <small>(Main category)</small><button class="danger" onclick="deleteCategory(${main.id})">Delete</button>${children.map(c=>`<div style="margin:10px 0 0 18px;padding:8px;border-left:3px solid #c77dff"><span>↳ ${escapeHTML(c.name)}</span><button class="danger" onclick="deleteCategory(${c.id})">Delete</button></div>`).join("")}</div>`;
 });
-
+if(!mainCategories.length)list.textContent="No categories added yet.";
 }
 
-
+function toggleParentCategory(){
+ const isSub=document.getElementById("categoryType").value==="sub";
+ document.getElementById("parentCategoryLabel").classList.toggle("hidden",!isSub);
+ document.getElementById("parentCategory").classList.toggle("hidden",!isSub);
+}
 
 async function addCategory(){
-
 const name=document.getElementById("categoryName").value.trim();
-
 const description=document.getElementById("categoryDescription").value.trim();
-
-
-
-if(!name){
-
-alert("Enter category name");
-
-return;
-
-}
-
-
-
-const {error}=await client.from("categories").insert({
-
-name,description,is_visible:true
-
-});
-
-
-
-if(error){
-
-alert(error.message);
-
-return;
-
-}
-
-
-
+const isSub=document.getElementById("categoryType").value==="sub";
+const parentValue=document.getElementById("parentCategory").value;
+if(!name){alert("Enter category name");return;}
+if(isSub&&!parentValue){alert("Select a parent main category");return;}
+const payload={name,description,is_visible:true,parent_id:isSub?Number(parentValue):null};
+const {error}=await client.from("categories").insert(payload);
+if(error){alert(error.message);return;}
 document.getElementById("categoryName").value="";
-
 document.getElementById("categoryDescription").value="";
-
+document.getElementById("parentCategory").value="";
 await loadCategories();
-
-alert("Category added!");
-
+alert(isSub?"Subcategory added!":"Main category added!");
 }
-
-
 
 async function deleteCategory(id){
-
-if(!confirm("Delete this category?"))return;
-
-
-
+const category=categories.find(c=>String(c.id)===String(id));
+const hasChildren=categories.some(c=>String(c.parent_id)===String(id));
+const warning=hasChildren?" This will also delete its subcategories. Products linked to these categories may prevent deletion.":" Products linked to this category may prevent deletion.";
+if(!confirm(`Delete ${category?.name||"this category"}?${warning}`))return;
 const {error}=await client.from("categories").delete().eq("id",id);
-
-
-
-if(error){
-
-alert(error.message);
-
-return;
-
-}
-
-
-
+if(error){alert("Could not delete category: "+error.message);return;}
 await loadCategories();
-
 }
-
 
 
 async function saveProduct(){
