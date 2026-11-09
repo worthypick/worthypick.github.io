@@ -152,19 +152,21 @@ button.secondary{background:#555}
 
 
 
-<label>Product Image</label>
+<label>Product Images (up to 6)</label>
+<input id="images" type="file" accept="image/*" multiple onchange="previewSelectedImages()">
+<p style="font-size:13px;color:#666;margin-top:-8px;margin-bottom:10px">Select up to 6 photos. The first selected photo will be the main product image.</p>
+<div id="imagePreview" style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px"></div>
 
-<input id="image" type="file" accept="image/*">
 
 
-
-<label>Category</label>
+<label>Category / Subcategory</label>
 
 <select id="category">
 
 <option value="">Select category</option>
 
 </select>
+<p style="font-size:13px;color:#666;margin-top:-8px;margin-bottom:12px">Choose a main category or one of its subcategories for this product.</p>
 
 
 
@@ -258,19 +260,17 @@ button.secondary{background:#555}
 
 <h2>Manage Categories</h2>
 
-<label>Category Type</label>
-<select id="categoryType" onchange="toggleParentCategory()">
+<label>Category type</label>
+<select id="categoryParentType" onchange="toggleParentCategory()">
 <option value="main">Main Category</option>
 <option value="sub">Subcategory</option>
 </select>
-<label id="parentCategoryLabel" class="hidden">Parent Main Category</label>
-<select id="parentCategory" class="hidden"><option value="">Select parent category</option></select>
-<label>Category Name</label>
-<input id="categoryName" placeholder="Example: Fashion / T-Shirts">
-<label>Description</label>
+<label>Parent main category (for subcategory)</label>
+<select id="categoryParent"><option value="">Select parent category</option></select>
+<input id="categoryName" placeholder="Category name">
 <input id="categoryDescription" placeholder="Category description">
 <button onclick="addCategory()">Add Category</button>
-<p class="status">Tip: Create a main category first, then add its subcategories.</p>
+<p style="font-size:13px;color:#666;margin-top:8px">Example: Fashion → T-Shirts, Shirts, Jeans, Hoodies.</p>
 
 <div id="categoryList"></div>
 
@@ -315,6 +315,8 @@ SUPABASE_PUBLISHABLE_KEY
 
 
 let categories = [];
+let existingImageUrls = [];
+let existingMainImageUrl = null;
 
 
 
@@ -415,63 +417,77 @@ document.getElementById(id).classList.remove("hidden");
 
 
 async function loadCategories(){
-const {data,error}=await client.from("categories").select("*").order("id");
-if(error){showMessage(error.message);return;}
-categories=data||[];
-const mainCategories=categories.filter(c=>!c.parent_id);
-const productSelect=document.getElementById("category");
-productSelect.innerHTML='<option value="">Select category</option>';
-mainCategories.forEach(main=>{
- const children=categories.filter(c=>String(c.parent_id)===String(main.id));
- if(children.length){
-  const group=document.createElement("optgroup"); group.label=main.name;
-  children.forEach(child=>{const option=document.createElement("option");option.value=child.id;option.textContent=child.name;group.appendChild(option);});
-  productSelect.appendChild(group);
- } else { const option=document.createElement("option");option.value=main.id;option.textContent=main.name;productSelect.appendChild(option); }
-});
-const parentSelect=document.getElementById("parentCategory");
-parentSelect.innerHTML='<option value="">Select parent category</option>';
-mainCategories.forEach(c=>{const o=document.createElement("option");o.value=c.id;o.textContent=c.name;parentSelect.appendChild(o);});
-toggleParentCategory();
-const list=document.getElementById("categoryList"); list.innerHTML="";
-mainCategories.forEach(main=>{
- const children=categories.filter(c=>String(c.parent_id)===String(main.id));
- list.innerHTML+=`<div class="product"><strong>${escapeHTML(main.name)}</strong> <small>(Main category)</small><button class="danger" onclick="deleteCategory(${main.id})">Delete</button>${children.map(c=>`<div style="margin:10px 0 0 18px;padding:8px;border-left:3px solid #c77dff"><span>↳ ${escapeHTML(c.name)}</span><button class="danger" onclick="deleteCategory(${c.id})">Delete</button></div>`).join("")}</div>`;
-});
-if(!mainCategories.length)list.textContent="No categories added yet.";
+  const {data,error}=await client.from("categories").select("*").order("id");
+  if(error){showMessage(error.message);return;}
+  categories=data||[];
+  const mains=categories.filter(c=>!c.parent_id);
+  const select=document.getElementById("category");
+  select.innerHTML='<option value="">Select category</option>';
+  mains.forEach(main=>{
+    const mainOption=document.createElement("option");
+    mainOption.value=main.id;
+    mainOption.textContent=main.name+" (Main)";
+    select.appendChild(mainOption);
+    categories.filter(c=>String(c.parent_id)===String(main.id)).forEach(child=>{
+      const option=document.createElement("option");
+      option.value=child.id;
+      option.textContent="— "+main.name+" / "+child.name;
+      select.appendChild(option);
+    });
+  });
+  const parent=document.getElementById("categoryParent");
+  parent.innerHTML='<option value="">Select parent category</option>';
+  mains.forEach(c=>{const o=document.createElement("option");o.value=c.id;o.textContent=c.name;parent.appendChild(o);});
+  toggleParentCategory();
+  const list=document.getElementById("categoryList");
+  list.innerHTML="";
+  mains.forEach(main=>{
+    const block=document.createElement("div");
+    block.className="product";
+    block.innerHTML=`<strong>${escapeHTML(main.name)} (Main)</strong><button class="danger" onclick="deleteCategory(${main.id})">Delete</button>`;
+    categories.filter(c=>String(c.parent_id)===String(main.id)).forEach(child=>{
+      const row=document.createElement("p");
+      row.style.cssText="padding:9px 12px;margin-top:8px;background:#f6f1fa;border-radius:7px";
+      row.innerHTML=`↳ ${escapeHTML(child.name)} <button class="danger" onclick="deleteCategory(${child.id})">Delete</button>`;
+      block.appendChild(row);
+    });
+    list.appendChild(block);
+  });
+  categories.filter(c=>c.parent_id && !mains.some(m=>String(m.id)===String(c.parent_id))).forEach(c=>{
+    const row=document.createElement("div");row.className="product";row.textContent=c.name+" (Parent not found)";list.appendChild(row);
+  });
 }
 
 function toggleParentCategory(){
- const isSub=document.getElementById("categoryType").value==="sub";
- document.getElementById("parentCategoryLabel").classList.toggle("hidden",!isSub);
- document.getElementById("parentCategory").classList.toggle("hidden",!isSub);
+  const isSub=document.getElementById("categoryParentType").value==="sub";
+  const parent=document.getElementById("categoryParent");
+  parent.disabled=!isSub;
+  parent.style.display=isSub?"block":"none";
 }
 
 async function addCategory(){
-const name=document.getElementById("categoryName").value.trim();
-const description=document.getElementById("categoryDescription").value.trim();
-const isSub=document.getElementById("categoryType").value==="sub";
-const parentValue=document.getElementById("parentCategory").value;
-if(!name){alert("Enter category name");return;}
-if(isSub&&!parentValue){alert("Select a parent main category");return;}
-const payload={name,description,is_visible:true,parent_id:isSub?Number(parentValue):null};
-const {error}=await client.from("categories").insert(payload);
-if(error){alert(error.message);return;}
-document.getElementById("categoryName").value="";
-document.getElementById("categoryDescription").value="";
-document.getElementById("parentCategory").value="";
-await loadCategories();
-alert(isSub?"Subcategory added!":"Main category added!");
+  const name=document.getElementById("categoryName").value.trim();
+  const description=document.getElementById("categoryDescription").value.trim();
+  const isSub=document.getElementById("categoryParentType").value==="sub";
+  const parentId=document.getElementById("categoryParent").value;
+  if(!name){alert("Enter category name");return;}
+  if(isSub&&!parentId){alert("Select a parent main category");return;}
+  const payload={name,description,is_visible:true,parent_id:isSub?Number(parentId):null};
+  const {error}=await client.from("categories").insert(payload);
+  if(error){alert(error.message);return;}
+  document.getElementById("categoryName").value="";
+  document.getElementById("categoryDescription").value="";
+  document.getElementById("categoryParent").value="";
+  await loadCategories();
+  alert(isSub?"Subcategory added!":"Main category added!");
 }
 
 async function deleteCategory(id){
-const category=categories.find(c=>String(c.id)===String(id));
-const hasChildren=categories.some(c=>String(c.parent_id)===String(id));
-const warning=hasChildren?" This will also delete its subcategories. Products linked to these categories may prevent deletion.":" Products linked to this category may prevent deletion.";
-if(!confirm(`Delete ${category?.name||"this category"}?${warning}`))return;
-const {error}=await client.from("categories").delete().eq("id",id);
-if(error){alert("Could not delete category: "+error.message);return;}
-await loadCategories();
+  if(!confirm("Delete this category? If it is a main category, its subcategories may also be deleted."))return;
+  const {error}=await client.from("categories").delete().eq("id",id);
+  if(error){alert(error.message);return;}
+  await loadCategories();
+  await loadProducts();
 }
 
 
@@ -501,48 +517,18 @@ return;
 
 
 
-let imageUrl=null;
-
-const file=document.getElementById("image").files[0];
-
-
-
-if(file){
-
-const path=Date.now()+"_"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-
-
-
-const {error:uploadError}=await client.storage
-
-.from("product-image")
-
-.upload(path,file,{upsert:false});
-
-
-
-if(uploadError){
-
-alert("Image upload failed: "+uploadError.message);
-
-return;
-
+const selectedFiles=Array.from(document.getElementById("images").files || []);
+if(selectedFiles.length>6){alert("You can upload a maximum of 6 images.");return;}
+const uploadedUrls=[];
+for(const file of selectedFiles){
+  const path=Date.now()+"_"+Math.random().toString(36).slice(2)+"_"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+  const {error:uploadError}=await client.storage.from("product-image").upload(path,file,{upsert:false});
+  if(uploadError){alert("Image upload failed: "+uploadError.message);return;}
+  const {data:urlData}=client.storage.from("product-image").getPublicUrl(path);
+  uploadedUrls.push(urlData.publicUrl);
 }
-
-
-
-const {data:urlData}=client.storage
-
-.from("product-image")
-
-.getPublicUrl(path);
-
-
-
-imageUrl=urlData.publicUrl;
-
-}
-
+const finalImageUrls=uploadedUrls.length ? uploadedUrls : existingImageUrls;
+const imageUrl=uploadedUrls.length ? uploadedUrls[0] : (existingMainImageUrl || finalImageUrls[0] || null);
 
 
 const product={
@@ -582,6 +568,7 @@ updated_at:new Date().toISOString()
 
 
 if(imageUrl)product.image_url=imageUrl;
+product.image_urls=finalImageUrls;
 
 
 
@@ -702,6 +689,9 @@ return;
 
 
 document.getElementById("productId").value=data.id;
+existingImageUrls=Array.isArray(data.image_urls)?data.image_urls:(data.image_url?[data.image_url]:[]);
+existingMainImageUrl=data.image_url||existingImageUrls[0]||null;
+renderExistingImages();
 
 document.getElementById("name").value=data.name||"";
 
@@ -769,8 +759,20 @@ await loadProducts();
 
 
 
-function resetForm(){
+function previewSelectedImages(){
+  const files=Array.from(document.getElementById("images").files || []);
+  const box=document.getElementById("imagePreview"); box.innerHTML="";
+  if(files.length>6){box.textContent="Maximum 6 images allowed.";return;}
+  files.forEach(file=>{const img=document.createElement("img");img.src=URL.createObjectURL(file);img.alt="Selected product image";img.style.cssText="width:76px;height:76px;object-fit:cover;border:1px solid #ddd;border-radius:7px";box.appendChild(img);});
+}
+function renderExistingImages(){
+  const box=document.getElementById("imagePreview"); if(!box)return; box.innerHTML="";
+  existingImageUrls.forEach(url=>{const img=document.createElement("img");img.src=url;img.alt="Existing product image";img.style.cssText="width:76px;height:76px;object-fit:cover;border:1px solid #ddd;border-radius:7px";box.appendChild(img);});
+}
 
+function resetForm(){
+existingImageUrls=[]; existingMainImageUrl=null;
+document.getElementById("imagePreview").innerHTML="";
 document.getElementById("productId").value="";
 
 document.getElementById("formTitle").textContent="Add New Product";
@@ -779,7 +781,7 @@ document.getElementById("formTitle").textContent="Add New Product";
 
 [
 
-"name","description","price","oldPrice","image",
+"name","description","price","oldPrice","images",
 
 "marketplaceUrl","size","rating","reviewCount"
 
