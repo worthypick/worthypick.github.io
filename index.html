@@ -190,6 +190,7 @@
     }
 
     .product-image {
+      cursor: pointer;
       height: 220px;
       background: #f0edf3;
       display: flex;
@@ -371,12 +372,19 @@
     .view-button{background:#17101f;color:#fff;margin:0}
     .details-modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:18px;z-index:500}
     .details-modal.open{display:flex}
-    .details-panel{background:#fff;border-radius:14px;max-width:520px;width:100%;max-height:85vh;overflow:auto;padding:24px;position:relative}
-    .details-panel h2{margin:0 35px 14px 0;color:#35164d}
-    .details-panel p{margin:9px 0;line-height:1.5;color:#514858}
+    .details-panel{background:#fff;border-radius:14px;max-width:980px;width:100%;max-height:92vh;overflow:auto;padding:28px;position:relative}
+    .details-panel h2{margin:0 42px 18px 0;color:#35164d;font-size:26px}
+    .details-panel p{margin:10px 0;line-height:1.55;color:#514858}
+    .details-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,1fr);gap:28px}
+    .details-main-image{width:100%;height:390px;object-fit:contain;background:#f6f3f8;border-radius:10px}
+    .details-thumbs{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+    .details-thumb{width:66px;height:66px;object-fit:cover;border:2px solid #e3d8eb;border-radius:7px;cursor:pointer;background:#f6f3f8}
+    .details-thumb.active{border-color:#813bb8}
+    .details-price{font-size:27px;font-weight:bold;margin:12px 0;color:#17121f}
+    .details-old-price{font-size:16px;color:#888;margin-left:8px;font-weight:normal}
     .modal-close{position:absolute;right:13px;top:10px;border:0;background:#eee;border-radius:50%;width:34px;height:34px;font-size:20px;cursor:pointer}
     .details-buy{display:block;text-align:center;background:#8b3dce;color:white;text-decoration:none;padding:12px;border-radius:8px;margin-top:18px;font-weight:bold}
-    @media(max-width:520px){.product-actions{flex-direction:column}.details-panel{padding:20px}}
+    @media(max-width:700px){.product-actions{flex-direction:column}.details-panel{padding:20px;max-height:94vh}.details-layout{grid-template-columns:1fr}.details-main-image{height:280px}.details-panel h2{font-size:21px}}
 
   </style>
 </head>
@@ -510,8 +518,7 @@
     <div class="details-panel" role="dialog" aria-modal="true" aria-labelledby="detailsName">
       <button class="modal-close" onclick="closeDetails()" aria-label="Close">×</button>
       <h2 id="detailsName">Product details</h2>
-      <div id="detailsContent"></div>
-      <a id="detailsBuy" class="details-buy" href="#" target="_blank" rel="noopener noreferrer" hidden>Buy Now</a>
+      <div class="details-layout"><div><img id="detailsMainImage" class="details-main-image" alt="Product image" hidden><div id="detailsThumbs" class="details-thumbs"></div></div><div class="details-info"><div id="detailsContent"></div><a id="detailsBuy" class="details-buy" href="#" target="_blank" rel="noopener noreferrer" hidden>Buy Now</a></div></div>
     </div>
   </div>
 
@@ -644,7 +651,8 @@
         const price = product.price !== null && product.price !== undefined && product.price !== "" ? `₹${escapeHTML(product.price)}` : "";
         const oldPrice = product.old_price ? `<del style="color:#888;font-size:13px;margin-left:7px">₹${escapeHTML(product.old_price)}</del>` : "";
         const source = escapeHTML(product.marketplace || "Shopping Platform");
-        const image = product.image_url || "";
+        const productImages = Array.isArray(product.image_urls) && product.image_urls.length ? product.image_urls : (product.image_url ? [product.image_url] : []);
+        const image = productImages[0] || "";
         const available = !["not available", "unavailable"].includes(String(product.availability || "").toLowerCase());
         const link = product.marketplace_url || "";
         const card = document.createElement("article");
@@ -660,6 +668,9 @@
             <div class="product-actions"><button class="details-button" type="button">Product Details</button>${link && available ? `<a class="view-button" href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">Buy Now</a>` : ""}</div>
           </div>`;
         card.querySelector(".details-button").addEventListener("click", () => openDetails(product));
+        card.querySelector(".product-image").addEventListener("click", () => openDetails(product));
+        card.querySelector(".product-name").style.cursor = "pointer";
+        card.querySelector(".product-name").addEventListener("click", () => openDetails(product));
         box.appendChild(card);
       });
     }
@@ -669,16 +680,19 @@
 
     function openDetails(p) {
       document.getElementById("detailsName").textContent = p.name || "Product details";
-      const fields = [
-        ["Description", p.description], ["Price", p.price ? `₹${p.price}` : ""],
-        ["Size", p.size], ["Platform", p.marketplace], ["Rating", p.rating ? `${p.rating}/5` : ""],
-        ["Reviews", p.review_count], ["Availability", p.availability], ["Return Policy", p.return_policy]
-      ];
-      document.getElementById("detailsContent").innerHTML = fields.filter(([k,v]) => v !== null && v !== undefined && v !== "").map(([k,v]) => `<p><strong>${escapeHTML(k)}:</strong> ${escapeHTML(v)}</p>`).join("") || "<p>Details are not available.</p>";
-      const buy = document.getElementById("detailsBuy");
-      if (p.marketplace_url && !["not available", "unavailable"].includes(String(p.availability || "").toLowerCase())) {
-        buy.href = p.marketplace_url; buy.hidden = false;
-      } else { buy.hidden = true; buy.removeAttribute("href"); }
+      const images = Array.isArray(p.image_urls) && p.image_urls.length ? p.image_urls : (p.image_url ? [p.image_url] : []);
+      const mainImage = document.getElementById("detailsMainImage");
+      const thumbs = document.getElementById("detailsThumbs"); thumbs.innerHTML = "";
+      if(images.length){
+        mainImage.src=images[0]; mainImage.hidden=false;
+        images.forEach((url,index)=>{const thumb=document.createElement("img");thumb.src=url;thumb.alt=`Product image ${index+1}`;thumb.className="details-thumb"+(index===0?" active":"");thumb.addEventListener("click",()=>{mainImage.src=url;thumbs.querySelectorAll("img").forEach(el=>el.classList.remove("active"));thumb.classList.add("active");});thumbs.appendChild(thumb);});
+      } else {mainImage.hidden=true;mainImage.removeAttribute("src");}
+      const price=p.price!==null&&p.price!==undefined&&p.price!==""?`₹${escapeHTML(p.price)}`:"";
+      const oldPrice=p.old_price?`<del class="details-old-price">₹${escapeHTML(p.old_price)}</del>`:"";
+      const fields=[["Description",p.description],["Size",p.size],["Platform",p.marketplace],["Rating",p.rating?`${p.rating}/5`:""],["Review Count",p.review_count],["Availability",p.availability],["Return Policy",p.return_policy]];
+      document.getElementById("detailsContent").innerHTML=(price?`<div class="details-price">${price}${oldPrice}</div>`:"")+(fields.filter(([k,v])=>v!==null&&v!==undefined&&v!=="").map(([k,v])=>`<p><strong>${escapeHTML(k)}:</strong> ${escapeHTML(v)}</p>`).join("")||"<p>Details are not available.</p>");
+      const buy=document.getElementById("detailsBuy");
+      if(p.marketplace_url&&!["not available","unavailable"].includes(String(p.availability||"").toLowerCase())){buy.href=p.marketplace_url;buy.hidden=false;}else{buy.hidden=true;buy.removeAttribute("href");}
       document.getElementById("detailsModal").classList.add("open");
     }
 
